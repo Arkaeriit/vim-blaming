@@ -1,6 +1,15 @@
 """ Scafolding of a git blame plugin
 let g:strobe=1
-let g:temp="/tmp/tmp"
+let s:temp="/tmp/tmp"
+let s:current_line = -1
+
+let s:target_refresh_time = 300
+
+let s:old_update = &updatetime
+
+if str2nr(s:old_update) > s:target_refresh_time
+    exec "set updatetime=" . s:target_refresh_time
+endif
 
 function Make_and_open_tempfile()
     let g:temp = tempname()
@@ -8,6 +17,8 @@ function Make_and_open_tempfile()
     silent! exec l:make_file
     let l:open_file = "split!|view! " . g:temp
     silent! exec l:open_file
+    call CycleAndSet()
+    call CycleAndSet()
 endfunction
 
 function Clean_tempfile()
@@ -29,16 +40,19 @@ function Ref()
     redraw!
 endfunction
 
+function Process()
+    if s:current_line != Get_line()
+        let s:current_line = Get_line()
+        call Ref()
+    endif
+endfunction
+
 function CycleAndSet()
     let l:path = expand('%:p')
-    let l:cmd = 'autocmd CursorMovedI,CursorMoved ' . l:path . ' ++once call CycleAndSet()'
+    let l:cmd = 'autocmd CursorHold ' . l:path . ' ++once call CycleAndSet()'
     if g:strobe == 1
         exec l:cmd
     endif
-    call Ref()
+    call Process()
 endfunction
-
-call Make_and_open_tempfile()
-call CycleAndSet()
-call CycleAndSet()
 
