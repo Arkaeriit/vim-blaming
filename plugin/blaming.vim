@@ -31,8 +31,20 @@ function Get_line()
     return l:pos[1]
 endfunction
 
+function Get_current_line_log()
+    let l:commit = system("git blame " . expand('%:p') . " | head -n " . Get_line() . " | tail -n 1 | cut -d ' ' -f 1")
+    let l:commit = l:commit[:-2]
+    if l:commit == "000000000000"
+        let l:log = "Not commited yet."
+    else
+        let l:log = system("git log " . l:commit . "~1.." . l:commit)
+    endif
+    return l:log
+endfunction
+
 function Ref()
-    let l:make_file = "silent! exec '! echo " . Get_line() . " > " . g:temp . "'"
+    let l:make_file = "silent! exec '! echo " . Get_current_line_log() . " > " . g:temp . "'"
+    echom g:temp
     silent! exec l:make_file
     wincmd t
     silent edit!
