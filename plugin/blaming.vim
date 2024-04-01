@@ -49,7 +49,7 @@ function Get_current_line_log()
     if l:commit == "000000000000"
         let l:log = "Not commited yet."
     else
-        let l:log = system("git log " . l:commit . "~1.." . l:commit)
+        let l:log = system("git log " . l:commit . " -n 1")
     endif
     call Write_file(l:log, "log.txt")
     return l:log
@@ -60,7 +60,7 @@ function Ref()
     wincmd t
     silent edit!
     wincmd p
-    "redraw!
+    redraw!
 endfunction
 
 function Process()
