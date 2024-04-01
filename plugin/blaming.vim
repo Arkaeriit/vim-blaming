@@ -2,7 +2,6 @@
 let g:strobe=1
 let s:temp="/tmp/tmp"
 let s:current_line = -1
-let s:inspected_file = expand('%:p')
 
 let s:target_refresh_time = 300
 
@@ -13,11 +12,15 @@ if str2nr(s:old_update) > s:target_refresh_time
 endif
 
 function Make_and_open_tempfile()
+    let s:inspected_file = expand('%:p')
     let s:temp = tempname()
     let l:make_file = "silent! exec '! touch " . s:temp
     silent! exec l:make_file
+    wincmd t
+    redraw!
     let l:open_file = "split!|view! " . s:temp
     silent! exec l:open_file
+    wincmd p " TODO: jump back to previous window
     call Write_file(s:temp, "log.txt")
     call CycleAndSet()
     call CycleAndSet()
@@ -56,8 +59,8 @@ function Ref()
     call writefile(split(Get_current_line_log(), "\n", 1), s:temp, 'b')
     wincmd t
     silent edit!
-    wincmd b
-    redraw!
+    wincmd p
+    "redraw!
 endfunction
 
 function Process()
