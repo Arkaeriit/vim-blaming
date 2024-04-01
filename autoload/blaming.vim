@@ -85,13 +85,28 @@ function Get_current_line_log()
     let l:commit = system(l:commit_get_command)
     call Write_file(l:commit, "log.txt")
     let l:commit = l:commit[:-2]
-    if l:commit == "000000000000"
+    if l:commit[0] == '^'
+        let l:commit = l:commit[1:-1]
+    endif
+    if Is_zeroes(l:commit)
         let l:log = "Not commited yet."
     else
         let l:log = system("git log " . l:commit . " -n 1")
     endif
     call Write_file(l:log, "log.txt")
     return l:log
+endfunction
+
+" Return true if all the characters in a string are '0'
+function Is_zeroes(txt)
+    let l:i=0
+    while l:i < strlen(a:txt)
+        if a:txt[l:i] != "0"
+            return 0
+        endif
+        let l:i = l:i+1
+    endwhile
+    return 1
 endfunction
 
 " Reload the plugin with a fresh log content.
