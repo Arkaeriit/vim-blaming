@@ -49,6 +49,15 @@ function blaming#Stop_vim_blaming()
     call Clean_state()
 endfunction
 
+" Toggle the state of the plugin
+function blaming#Toggle_vim_blaming()
+    if s:running
+        call blaming#Stop_vim_blaming()
+    else
+        call blaming#Start_vim_blaming()
+    endif
+endfunction
+
 " Cleanup the plugin's state, should be ran after stopping the display.
 function Clean_state()
     call delete(s:temp)
