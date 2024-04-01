@@ -108,6 +108,7 @@ function blaming#Refresh()
     call writefile(split(l:displayed_text, "\n", 1), s:temp, 'b')
     wincmd t
     silent edit!
+    silent set filetype=git
     wincmd p
     redraw!
 endfunction
