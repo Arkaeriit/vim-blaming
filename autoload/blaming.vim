@@ -1,6 +1,5 @@
 """ Scafolding of a git blame plugin
 let s:running=0
-let s:current_line = -1
 let s:target_refresh_time = 300
 
 
@@ -17,6 +16,7 @@ function blaming#Start_vim_blaming()
     let s:temp = tempname()
     let s:running = 1
     let s:old_update = &updatetime
+    let s:current_line = -1
     if str2nr(s:old_update) > s:target_refresh_time
         exec "set updatetime=" . s:target_refresh_time
     endif
@@ -33,7 +33,7 @@ function blaming#Start_vim_blaming()
     let l:cmd = 'autocmd BufWinLeave ' . s:temp . ' ++once let s:running = 0'
     exec l:cmd
     " Run the refresh command to prepare the normal use of the plugin
-    call CycleAndSet()
+    call Process()
     call CycleAndSet()
 endfunction
 
