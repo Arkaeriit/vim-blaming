@@ -6,7 +6,11 @@ let s:target_refresh_time = 300
 function blaming#Start_vim_blaming()
     " Ensure that we can run the plugin.
     if s:running == 1
-        echom "Error, vim-blaming is already running"
+        echom "Error, vim-blaming is already running."
+        return
+    endif
+    if !blaming#check_git()
+        echom "Error, the current file is not managed by git."
         return
     endif
     " Set plugin's state
@@ -32,6 +36,16 @@ function blaming#Start_vim_blaming()
     " Run the refresh command to prepare the normal use of the plugin
     call blaming#Process()
     call blaming#CycleAndSet()
+endfunction
+
+" Return true if the current file can be managed by git
+function blaming#check_git()
+    let l:cmd = "git blame " . expand('%:p')
+    let l:output = system(l:cmd)
+    if l:output[:5] == "fatal:"
+        return 0
+    endif
+    return 1
 endfunction
 
 " Stop the plugin if it is already running and close the display.
