@@ -1,5 +1,5 @@
 """ Scafolding of a git blame plugin
-let g:strobe=1
+let s:running=0
 let s:temp="/tmp/tmp"
 let s:current_line = -1
 
@@ -11,24 +11,52 @@ if str2nr(s:old_update) > s:target_refresh_time
     exec "set updatetime=" . s:target_refresh_time
 endif
 
-function Make_and_open_tempfile()
+" This function start's the plugin, running it is the entry point.
+" It's sets the plugin's state and display.
+function Start_vim_blaming()
+    if s:running == 1
+        echom "Error, vim-blaming is already running"
+        return
+    endif
+    " Set plugin's state
     let s:inspected_file = expand('%:p')
     let s:temp = tempname()
+    let s:running = 1
+    " Create plugin's temp file
     let l:make_file = "silent! exec '! touch " . s:temp
     silent! exec l:make_file
     wincmd t
-    redraw!
+    " Open plugin's temp file on new split
     let l:open_file = "split!|view! " . s:temp
     silent! exec l:open_file
     wincmd p " TODO: jump back to previous window
     call Write_file(s:temp, "log.txt")
+    " Create autocomand to stop the plugin if we close the plugin's window
+    let l:cmd = 'autocmd BufWinLeave ' . s:temp . ' ++once let s:running = 0'
+    exec l:cmd
+    " Run the refresh command to prepare the normal use of the plugin
     call CycleAndSet()
     call CycleAndSet()
 endfunction
 
-function Clean_tempfile()
-    wincmd o
+" Stop the plugin if it is already running and close the display.
+function Stop_vim_blaming()
+    if s:running == 0
+        echom "Error, vim-blaming is not running"
+        return
+    endif
+    wincmd t
+    quit
+    wincmd p
+    call Clean_state()
+endfunction
+
+" Cleanup the plugin's state, should be ran after stopping the display.
+function Clean_state()
     call delete(s:temp)
+    let s:running = 0
+    let l:cmd = 'autocmd! BufWinLeave ' . s:temp
+    exec l:cmd
 endfunction
 
 function Get_line()
@@ -72,9 +100,9 @@ endfunction
 
 function CycleAndSet()
     let l:cmd = 'autocmd CursorHold ' . s:inspected_file . ' ++once call CycleAndSet()'
-    if g:strobe == 1
+    if s:running == 1
         exec l:cmd
+        call Process()
     endif
-    call Process()
 endfunction
 
