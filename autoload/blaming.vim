@@ -1,14 +1,12 @@
 """ Scafolding of a git blame plugin
 let s:running=0
-let s:temp="/tmp/tmp"
 let s:current_line = -1
-
 let s:target_refresh_time = 300
 
 
 " This function start's the plugin, running it is the entry point.
 " It's sets the plugin's state and display.
-function Start_vim_blaming()
+function blaming#Start_vim_blaming()
     " Ensure that we can run the plugin.
     if s:running == 1
         echom "Error, vim-blaming is already running"
@@ -40,7 +38,7 @@ function Start_vim_blaming()
 endfunction
 
 " Stop the plugin if it is already running and close the display.
-function Stop_vim_blaming()
+function blaming#Stop_vim_blaming()
     if s:running == 0
         echom "Error, vim-blaming is not running"
         return
