@@ -16,3 +16,10 @@ The plugin exposes 3 commands.
 
 The plugin is still a tag rough around the edges, it could use a wee bit of polish.
 
+The most convenient way to use vim-blaming is to map some keybindings to the `BlamingToggle` command. 
+You can do so by adding the following line in your `vimrc`.
+
+```vimscript
+nnoremap <leader>gb :BlamingToggle<Cr>
+```
+
