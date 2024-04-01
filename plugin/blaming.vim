@@ -5,15 +5,11 @@ let s:current_line = -1
 
 let s:target_refresh_time = 300
 
-let s:old_update = &updatetime
-
-if str2nr(s:old_update) > s:target_refresh_time
-    exec "set updatetime=" . s:target_refresh_time
-endif
 
 " This function start's the plugin, running it is the entry point.
 " It's sets the plugin's state and display.
 function Start_vim_blaming()
+    " Ensure that we can run the plugin.
     if s:running == 1
         echom "Error, vim-blaming is already running"
         return
@@ -22,6 +18,10 @@ function Start_vim_blaming()
     let s:inspected_file = expand('%:p')
     let s:temp = tempname()
     let s:running = 1
+    let s:old_update = &updatetime
+    if str2nr(s:old_update) > s:target_refresh_time
+        exec "set updatetime=" . s:target_refresh_time
+    endif
     " Create plugin's temp file
     let l:make_file = "silent! exec '! touch " . s:temp
     silent! exec l:make_file
@@ -57,17 +57,21 @@ function Clean_state()
     let s:running = 0
     let l:cmd = 'autocmd! BufWinLeave ' . s:temp
     exec l:cmd
+    exec "set updatetime=" . s:old_update
 endfunction
 
+" Return the current line the cursor is on.
 function Get_line()
     let l:pos = getcurpos()
     return l:pos[1]
 endfunction
 
+" DEBUG
 function Write_file(txt, file)
     call writefile(split(a:txt, "\n", 1), a:file, 'a')
 endfunction
 
+" Return as a string containing the output of git log for the current line.
 function Get_current_line_log()
     let l:commit_get_command = "git blame " . s:inspected_file . " | head -n " . Get_line() . " | tail -n 1 | cut -d ' ' -f 1"
     call Write_file(l:commit_get_command, "log.txt")
@@ -83,23 +87,32 @@ function Get_current_line_log()
     return l:log
 endfunction
 
-function Ref()
-    call writefile(split(Get_current_line_log(), "\n", 1), s:temp, 'b')
+" Reload the plugin with a fresh log content.
+function Refresh()
+    if &modified == 1
+        let l:displayed_text = "The vim-blaming plugin might not work if the changes on the file are not saved."
+    else
+        let l:displayed_text = Get_current_line_log()
+    endif
+    call writefile(split(l:displayed_text, "\n", 1), s:temp, 'b')
     wincmd t
     silent edit!
     wincmd p
     redraw!
 endfunction
 
+" Refresh the plugin if we changed line.
 function Process()
     if s:current_line != Get_line()
         let s:current_line = Get_line()
-        call Ref()
+        call Refresh()
     endif
 endfunction
 
+" If the plugin is still running, refresh the display and reset the autocomand
+" that call it again.
 function CycleAndSet()
-    let l:cmd = 'autocmd CursorHold ' . s:inspected_file . ' ++once call CycleAndSet()'
+    let l:cmd = 'autocmd CursorHold,BufWritePost ' . s:inspected_file . ' ++once call CycleAndSet()'
     if s:running == 1
         exec l:cmd
         call Process()
