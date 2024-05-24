@@ -38,9 +38,15 @@ function blaming#Start_vim_blaming()
     call blaming#CycleAndSet()
 endfunction
 
+" Return the string 'cd <file dir> && git' which should be used as a git
+" command. It's needed when the file is not opened from it's git repo. 
+function blaming#git()
+    return "cd '" . expand('%:h') . "' && git "
+endfunction
+
 " Return true if the current file can be managed by git
 function blaming#check_git()
-    let l:cmd = "git blame " . expand('%:p')
+    let l:cmd = blaming#git() . "blame " . expand('%:p')
     let l:output = system(l:cmd)
     if l:output[:5] == "fatal:"
         return 0
@@ -86,7 +92,7 @@ endfunction
 
 " Return as a string containing the output of git log for the current line.
 function blaming#Get_current_line_log()
-    let l:commit_get_command = "git blame " . s:inspected_file . " | head -n " . blaming#Get_line() . " | tail -n 1 | cut -d ' ' -f 1"
+    let l:commit_get_command = blaming#git() . "blame " . s:inspected_file . " | head -n " . blaming#Get_line() . " | tail -n 1 | cut -d ' ' -f 1"
     let l:commit = system(l:commit_get_command)
     let l:commit = l:commit[:-2]
     if l:commit[0] == '^'
@@ -95,7 +101,7 @@ function blaming#Get_current_line_log()
     if blaming#Is_zeroes(l:commit)
         let l:log = "Not commited yet."
     else
-        let l:log = system("git log " . l:commit . " -n 1")
+        let l:log = system(blaming#git() . "log " . l:commit . " -n 1")
     endif
     return l:log
 endfunction
